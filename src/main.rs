@@ -23,10 +23,10 @@ fn main() -> anyhow::Result<()> {
     let cue_location = PathBuf::from(cue_location.to_string());
     let out_dir = PathBuf::from(&cli.out_dir);
     let cover_file = if cli.without_cover {
+        None
+    } else {
         let cover_file = cue_location.join("cover.jpg").to_string_lossy().to_string();
         Some(cover_file)
-    } else {
-        None
     };
 
     for file in cue.files.iter() {
