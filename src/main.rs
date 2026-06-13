@@ -28,6 +28,7 @@ fn main() -> anyhow::Result<()> {
         let cover_file = cue_location.join("cover.jpg").to_string_lossy().to_string();
         Some(cover_file)
     };
+    let performer = cue.performer.context("Read cue performer failed")?;
 
     for file in cue.files.iter() {
         let album_file = cue_location.join(&file.file).to_string_lossy().to_string();
@@ -56,10 +57,7 @@ fn main() -> anyhow::Result<()> {
                     .title
                     .as_ref()
                     .context("Read track_title failed")?,
-                current_track
-                    .performer
-                    .as_ref()
-                    .context("Read performer failed")?,
+                current_track.performer.as_ref().unwrap_or(&performer),
                 &current_track.no,
                 start_cut_point,
                 end_cut_point,
@@ -110,7 +108,6 @@ fn split(
 ) -> anyhow::Result<()> {
     let out_file = out_dir.join(format!("{track_number} {track_title}.flac"));
     let out_file = out_file.to_string_lossy().to_string();
-    println!("{}", out_file);
     let path = Path::new(&out_file);
     if path.exists() {
         remove_file(&out_file)?;
@@ -154,11 +151,11 @@ fn split(
     args.push("-metadata".into());
     args.push(format!("track={track_number}"));
 
-    args.push(out_file);
-
     for ext_arg in ext_args {
         args.push(ext_arg.clone());
     }
+
+    args.push(out_file);
 
     println!("{:?}", &args);
     let ffmpeg_output = sh.cmd("ffmpeg").args(&args).read()?;
